@@ -22,6 +22,15 @@ class ShortenedUrl < ActiveRecord::Base
     through: :visits,
     source: :visitor
 
+  has_many :taggings,
+    class_name: 'Tagging',
+    foreign_key: :short_url_id,
+    primary_key: :id
+
+  has_many :tags,
+    through: :taggings,
+    source: :tag_topic
+
     # User.joins(:visits).where("visits.shortened_url_id = ?", self.id).distinct
 
 
@@ -59,5 +68,9 @@ class ShortenedUrl < ActiveRecord::Base
   def num_recent_uniques
     # distinct_visitors.where(created_at: 10.minutes.ago..Time.now).count
     Visit.select(:visitor_id).where(["created_at > ? AND short_url_id = ?", 10.minutes.ago, self.id]).count
+  end
+
+  def list_tags
+    tags.map(&:tag)
   end
 end
