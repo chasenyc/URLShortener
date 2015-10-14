@@ -1,0 +1,66 @@
+def prompt_user_email
+  puts "Input your email:"
+  gets.chomp
+end
+
+def prompt_visit_or_create
+  puts <<-EOB
+What do you want to do?
+0. Create shortened URL
+1. Visit shortened URL
+   EOB
+  gets.chomp.to_i
+end
+
+def prompt_long_url
+  puts "Type in your long url"
+  gets.chomp
+end
+
+def prompt_short_url
+  puts "Type in the shortened URL"
+  gets.chomp
+end
+
+def shorten_long_url(user, long_url)
+  ShortenedUrl.create_for_user_and_long_url!(user, long_url)
+end
+
+def get_short_url(url_string)
+  ShortenedUrl.find_by_short_url(url_string)
+end
+
+def visit_url(user, short_url)
+  Visit.record_visit!(user, short_url)
+  Launchy.open(get_long_url(short_url))
+end
+
+def get_long_url(short_url)
+  short_url.long_url
+end
+
+def display(url)
+  puts "Your short URL is: #{url} ."
+end
+
+def create_or_assign_user(email)
+  user_instance = User.find_by_email(email)
+  user_instance ||= User.create!(email: email)
+end
+
+def url_shortener_access
+  email = prompt_user_email
+  user = create_or_assign_user(email)
+  mode = prompt_visit_or_create
+  if mode == 0
+    url_string = prompt_long_url
+    new_short_url = shorten_long_url(user, url_string)
+    display(new_short_url.short_url)
+  else
+    url_string = prompt_short_url
+    short_url = get_short_url(url_string)
+    visit_url(user, short_url)
+  end
+end
+
+url_shortener_access
